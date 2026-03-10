@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+
+# logs
+logs/
+*.log
+
+# runtime data
+pids/
+*.pid
+
+# build output
+dist/
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# other
+another
