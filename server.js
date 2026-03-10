@@ -27,18 +27,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  
-  // Catch all handler: send back React's index.html file for client-side routing
-  app.get('*', (req, res) => {
-    // Skip API routes
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
-      return res.status(404).json({ message: 'API endpoint not found' });
-    }
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  });
 }
 
-// Routes
+// Routes - MUST be defined BEFORE the catch-all handler
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/visitors', visitorRoutes);
@@ -48,6 +39,17 @@ app.use('/api/roles', roleRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
+
+// Catch all handler: send back React's index.html file for client-side routing (AFTER API routes)
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    // Skip API routes - this check is now redundant but kept for clarity
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+}
 
 console.log(process.env.MONGODB_URI ? 'MongoDB URI is set' : 'MongoDB URI is NOT set');
 
