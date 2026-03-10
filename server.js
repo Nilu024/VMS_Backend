@@ -49,14 +49,19 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
+console.log(process.env.MONGODB_URI ? 'MongoDB URI is set' : 'MongoDB URI is NOT set');
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-    // Seed admin user
-    seedAdmin();
-  })
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+.then(() => {
+  console.log("✅ Connected to MongoDB");
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+
+})
+.catch(err => console.error("❌ MongoDB connection error:", err));
 
 // Seed initial admin (only in development)
 async function seedAdmin() {
