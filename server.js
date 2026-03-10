@@ -59,17 +59,18 @@ if (process.env.NODE_ENV === 'production') {
 
 console.log(process.env.MONGODB_URI ? 'MongoDB URI is set' : 'MongoDB URI is NOT set');
 
-// Connect to MongoDB
+const PORT = process.env.PORT || 5000;
+// Connect to MongoDB and start server afterwards
 mongoose.connect(process.env.MONGODB_URI)
-.then(() => {
-  console.log("✅ Connected to MongoDB");
-
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-  });
-
-})
-.catch(err => console.error("❌ MongoDB connection error:", err));
+  .then(() => {
+    console.log("✅ Connected to MongoDB");
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+    // optionally seed admin in development
+    seedAdmin().catch(err => console.error('Seed error:', err));
+  })
+  .catch(err => console.error("❌ MongoDB connection error:", err));
 
 // Seed initial admin (only in development)
 async function seedAdmin() {
@@ -81,25 +82,16 @@ async function seedAdmin() {
   const User = require('./models/User');
   const bcrypt = require('bcryptjs');
   
-  try {
-    const adminExists = await User.findOne({ role: 'admin' });
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      await User.create({
-        username: 'admin',
-        password: hashedPassword,
-        role: 'admin',
-        name: 'System Admin'
-      });
-      console.log('✅ Admin user seeded: username=admin, password=admin123');
-      console.log('⚠️  WARNING: Change default admin password after first login!');
-    }
-  } catch (err) {
-    console.error('Seed error:', err);
+  const adminExists = await User.findOne({ role: 'admin' });
+  if (!adminExists) {
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await User.create({
+      username: 'admin',
+      password: hashedPassword,
+      role: 'admin',
+      name: 'System Admin'
+    });
+    console.log('✅ Admin user seeded: username=admin, password=admin123');
+    console.log('⚠️  WARNING: Change default admin password after first login!');
   }
 }
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
