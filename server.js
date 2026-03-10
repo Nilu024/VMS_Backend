@@ -24,6 +24,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// log every request (helpful in production debugging)
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
@@ -40,11 +46,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// Catch all handler: send back React's index.html file for client-side routing (AFTER API routes)
+// Catch all handler to serve React app (only non-API requests)
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
-    // Skip API routes - this check is now redundant but kept for clarity
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      // let other middlewares handle these; they will have already executed
       return res.status(404).json({ message: 'API endpoint not found' });
     }
     res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
